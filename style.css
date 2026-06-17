@@ -1,0 +1,8 @@
+body { background-color: #121212; overflow: hidden; height: 100vh; }
+        .canvas-shadow { box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .grid-bg { background-size: 20px 20px; background-image: radial-gradient(circle, #222222 1px, transparent 1px); }
+        .tft-pixel-grid { background-size: 10px 10px; background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px); }
+        .selected-color { outline: 2.5px solid #3b82f6 !important; transform: scale(1.15); z-index: 10; }
+        /* Custom scrollbar for toolbar if needed */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

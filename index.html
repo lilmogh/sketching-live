@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Paint Connect Studio Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#3b82f6",
+                        "dark-bg": "#121212",
+                        "ribbon-bg": "#1c1c1c",
+                        "border-color": "#2d2d2d",
+                    },
+                    "fontFamily": {
+                        "mono-status": ["JetBrains Mono"],
+                        "body-md": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="font-body-md text-white select-none overflow-hidden h-screen flex flex-col bg-dark-bg">
+
+<!-- HEADER: Menu bar & Connection Controls -->
+<header class="bg-ribbon-bg border-b border-border-color flex justify-between items-center px-4 h-10 shrink-0">
+    <div class="flex items-center gap-4">
+        <!-- Logo -->
+        <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-primary text-[20px]">palette</span>
+            <span class="font-semibold text-sm tracking-wide text-gray-200">Paint Connect</span>
+        </div>
+        
+        <!-- Menu (Removed) -->
+    </div>
+    
+    <!-- Connection & Upload Status -->
+    <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5 px-3 py-1 bg-[#252525] border border-border-color rounded-full">
+            <span id="statusIndicator" class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span id="statusText" class="font-mono-status text-[11px] text-gray-400">Disconnected</span>
+        </div>
+        <button id="btnConnect" class="bg-primary hover:bg-blue-600 text-white px-3.5 h-[28px] flex items-center gap-1 font-semibold text-xs rounded shadow transition">
+            <span class="material-symbols-outlined text-[14px]">usb</span> CONNECT
+        </button>
+        <button id="btnUpload" class="hidden bg-green-600 hover:bg-green-700 text-white px-3.5 h-[28px] items-center gap-1 font-semibold text-xs rounded shadow transition animate-pulse">
+            <span class="material-symbols-outlined text-[14px]">bolt</span> UPLOAD FAST
+        </button>
+        <button id="btnLive" class="bg-gray-700 hover:bg-gray-600 text-white px-3.5 h-[28px] flex items-center gap-1 font-semibold text-xs rounded shadow transition border border-gray-600 ml-2">
+            <span class="material-symbols-outlined text-[14px]" id="liveIcon">radio_button_unchecked</span> LIVE: OFF
+        </button>
+    </div>
+</header>
+
+<!-- TOOLBAR (MS Paint Ribbon) -->
+<div class="bg-ribbon-bg border-b border-border-color px-4 py-2 flex items-center gap-4 shrink-0 overflow-x-auto select-none no-scrollbar">
+    
+    <!-- Group: Undo/Redo -->
+    <div class="flex flex-col items-center border-r border-border-color pr-4 h-14 justify-between">
+        <div class="flex items-center gap-1">
+            <button id="btnUndo" class="w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] rounded transition text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent" title="Undo (Ctrl+Z)">
+                <span class="material-symbols-outlined text-[20px]">undo</span>
+            </button>
+            <button id="btnRedo" class="w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] rounded transition text-gray-300 disabled:opacity-30 disabled:hover:bg-transparent" title="Redo (Ctrl+Y)">
+                <span class="material-symbols-outlined text-[20px]">redo</span>
+            </button>
+        </div>
+        <span class="text-[10px] text-gray-500 font-medium">History</span>
+    </div>
+
+    <!-- Group: Tools -->
+    <div class="flex flex-col items-center border-r border-border-color pr-4 h-14 justify-between">
+        <div class="flex items-center gap-1">
+            <button id="toolPencil" class="tool-btn w-8 h-8 flex items-center justify-center bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded transition" title="Pencil">
+                <span class="material-symbols-outlined text-[18px]">edit</span>
+            </button>
+            <button id="toolFill" class="tool-btn w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-gray-300 border border-transparent rounded transition" title="Fill Bucket">
+                <span class="material-symbols-outlined text-[18px]">format_paint</span>
+            </button>
+            <button id="toolEraser" class="tool-btn w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-gray-300 border border-transparent rounded transition" title="Eraser">
+                <span class="material-symbols-outlined text-[18px]">ink_eraser</span>
+            </button>
+            <button id="toolPicker" class="tool-btn w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-gray-300 border border-transparent rounded transition" title="Color Picker">
+                <span class="material-symbols-outlined text-[18px]">colorize</span>
+            </button>
+            <button id="toolClear" class="w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-red-400 rounded transition" title="Clear Canvas">
+                <span class="material-symbols-outlined text-[18px]">delete</span>
+            </button>
+        </div>
+        <span class="text-[10px] text-gray-500 font-medium">Tools</span>
+    </div>
+
+    <!-- Group: Shapes -->
+    <div class="flex flex-col items-center border-r border-border-color pr-4 h-14 justify-between">
+        <div class="flex items-center gap-1">
+            <button id="toolLine" class="tool-btn w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-gray-300 border border-transparent rounded transition" title="Line">
+                <span class="material-symbols-outlined text-[18px]">horizontal_rule</span>
+            </button>
+            <button id="toolRect" class="tool-btn w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-gray-300 border border-transparent rounded transition" title="Rectangle">
+                <span class="material-symbols-outlined text-[18px]">rectangle</span>
+            </button>
+            <button id="toolOval" class="tool-btn w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-gray-300 border border-transparent rounded transition" title="Oval / Circle">
+                <span class="material-symbols-outlined text-[18px]">panorama_fish_eye</span>
+            </button>
+        </div>
+        <span class="text-[10px] text-gray-500 font-medium">Shapes</span>
+    </div>
+
+    <!-- Group: Size -->
+    <div class="flex flex-col items-center border-r border-border-color pr-4 h-14 justify-between w-28">
+        <div class="flex flex-col justify-center w-full px-1 gap-1">
+            <div class="flex justify-between items-center text-[10px] text-gray-400">
+                <span>Thickness</span>
+                <span id="strokeDisplay" class="font-semibold text-blue-400">4px</span>
+            </div>
+            <input id="strokeSlider" class="w-full accent-blue-500 h-1 bg-[#2d2d2d] rounded-full appearance-none cursor-pointer" type="range" min="1" max="24" value="4"/>
+        </div>
+        <span class="text-[10px] text-gray-500 font-medium">Stroke</span>
+    </div>
+
+    <!-- Group: Colours -->
+    <div class="flex flex-col items-center border-r border-border-color pr-4 h-14 justify-between">
+        <div class="flex items-center gap-3">
+            <!-- Active Color Preview -->
+            <div class="flex flex-col items-center">
+                <div id="activeColorIndicator" class="w-8 h-8 rounded-full border border-white/20 bg-black shadow-md" title="Active Color"></div>
+            </div>
+            
+            <!-- Grid of colors -->
+            <div class="grid grid-rows-2 grid-cols-10 gap-1">
+                <!-- Row 1 -->
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#000000] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#000000"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#7f7f7f] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#7f7f7f"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#880015] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#880015"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#ed1c24] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#ed1c24"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#ff7f27] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#ff7f27"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#fff200] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#fff200"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#22b14c] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#22b14c"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#00a2e8] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#00a2e8"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#3f48cc] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#3f48cc"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#a349a4] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#a349a4"></div>
+                
+                <!-- Row 2 -->
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#ffffff] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#ffffff"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#c3c3c3] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#c3c3c3"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#b97a57] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#b97a57"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#ffaec9] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#ffaec9"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#ffc90e] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#ffc90e"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#efe4b0] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#efe4b0"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#b5e61d] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#b5e61d"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#99d9ea] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#99d9ea"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#7092be] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#7092be"></div>
+                <div class="color-swatch w-4 h-4 rounded-sm bg-[#c8bfe7] cursor-pointer hover:scale-110 transition border border-white/10" data-color="#c8bfe7"></div>
+            </div>
+
+            <!-- Custom Color Picker Button -->
+            <div class="relative w-6 h-6 rounded-full overflow-hidden cursor-pointer hover:scale-110 transition border border-white/20 flex items-center justify-center bg-gradient-to-tr from-red-500 via-green-500 to-blue-500" title="Custom Color">
+                <input type="color" id="customColorPicker" value="#000000" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+            </div>
+        </div>
+        <span class="text-[10px] text-gray-500 font-medium">Colours</span>
+    </div>
+
+    <!-- Group: File Export -->
+    <div class="flex flex-col items-center h-14 justify-between">
+        <button id="btnDownload" class="w-8 h-8 flex items-center justify-center hover:bg-[#2d2d2d] text-gray-300 rounded transition" title="Save Image (Download PNG)">
+            <span class="material-symbols-outlined text-[18px]">download</span>
+        </button>
+        <span class="text-[10px] text-gray-500 font-medium">Export</span>
+    </div>
+
+</div>
+
+<!-- MAIN AREA: Canvas Workspace -->
+<main class="flex-1 bg-dark-bg grid-bg flex overflow-hidden">
+    <!-- Canvas Area -->
+    <div class="flex-1 overflow-auto flex items-center justify-center p-8 relative">
+        <div id="canvasContainer" class="relative bg-white canvas-shadow border border-border-color transition-all" style="width: 720px; height: 480px;">
+            <div class="absolute -top-6 left-0 right-0 flex justify-between items-end px-2">
+                <span class="text-[10px] text-gray-500 font-mono-status uppercase">TFT_LCD_480x320_HD</span>
+                <span class="text-[10px] text-gray-500 font-mono-status" id="zoomText">ZOOM: FIT</span>
+            </div>
+            
+            <div class="w-full h-full relative tft-pixel-grid cursor-crosshair overflow-hidden border border-border-color">
+                <canvas id="pad" width="480" height="320" class="w-full h-full" style="image-rendering: pixelated; touch-action: none;"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Console Area -->
+    <div class="w-80 border-l border-border-color bg-[#0a0a0a] flex flex-col shrink-0">
+        <div class="h-10 bg-[#1c1c1c] border-b border-border-color flex items-center px-4 shrink-0">
+            <span class="material-symbols-outlined text-gray-400 text-[16px] mr-2">terminal</span>
+            <span class="text-xs font-semibold text-gray-300">C++ Code Output</span>
+        </div>
+        <div id="codeConsole" class="flex-1 p-4 font-mono-status text-[11px] text-green-400 overflow-y-auto whitespace-pre-wrap break-all leading-tight">
+// Ready to stream live commands...
+</div>
+    </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-ribbon-bg border-t border-border-color h-8 shrink-0 flex justify-between items-center px-4 text-xs text-gray-400">
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">location_searching</span>
+            <span class="font-mono-status">X: <span id="pos-x">0</span>, Y: <span id="pos-y">0</span></span>
+        </div>
+        <div class="h-3 w-[1px] bg-border-color"></div>
+        <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">aspect_ratio</span>
+            <span class="font-mono-status" id="resolutionDisplay">480x320</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">speed</span>
+            <span class="font-mono-status">RLE COMPRESSION (HANDSHAKE)</span>
+        </div>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
